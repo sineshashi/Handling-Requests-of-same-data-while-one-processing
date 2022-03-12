@@ -25,7 +25,8 @@ class PostView(generics.RetrieveAPIView):
         key = request.build_absolute_uri() #Finding the url which we will use as key for cache.
         cache_value = cache.get(key) #Getting cache for the key.
      
-        if cache_value == None:
+        if cache_value == None or cache_value['status'] == 'ERROR':
+            cache.set(key, {'response': '', 'status': 'PROCESSING', 'time': datetime.datetime.now()})
             id = kwargs['pk']
             post = get_post(id)
             if post == 'KeyError':
@@ -35,8 +36,7 @@ class PostView(generics.RetrieveAPIView):
                 serializer = PostSerializer(post)
                 cache.set(key, {'response': serializer.data, 'status': 'SUCCESS'}) #Updating cache
                 return Response(data=serializer.data, status=status.HTTP_200_OK)
-        elif cache_value['status'] == 'ERROR':
-            raise NotFound(detail="Post Not Found.")
+
         elif cache_value['status'] == 'SUCCESS':
             return Response(data = cache_value['response'])
         else:
@@ -49,8 +49,6 @@ class PostView(generics.RetrieveAPIView):
             elif cache.get(key)['status'] == 'ERROR':
                 raise NotFound(detail="Post Not Found.")
             else:
-                # If query is still processing, wait for 5 more seconds to complete the query.
-                time.sleep(5)
                 if cache.get(key)['status'] == 'SUCCESS': # Now check if the query processing has been completed
                     return Response(data=cache.get(key)['response'], status= status.HTTP_200_OK)
                 else: 
