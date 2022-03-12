@@ -53,10 +53,8 @@ class PostView(generics.RetrieveAPIView):
                 time.sleep(5)
                 if cache.get(key)['status'] == 'SUCCESS': # Now check if the query processing has been completed
                     return Response(data=cache.get(key)['response'], status= status.HTTP_200_OK)
-                elif cache.get(key)['status'] == 'ERROR':
-                    raise NotFound(detail="Post Not Found.")
-                else:
-                    return Response(data="TIME_OUT", status=status.HTTP_408_REQUEST_TIMEOUT) #If it takes more time, respond to user that time out and please refresh after some time.
+                else: 
+                    return Response(data="Error occured", status=status.HTTP_404_NOT_FOUND) #If it takes more time, respond to user that time out and please refresh after some time.
 
 
 
